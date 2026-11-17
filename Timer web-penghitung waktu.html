@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Penghitung Waktu</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 650px;
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .simpan {
+            background: #2196f3;
+            color: white;
+        }
+
+        .reset {
+            background: #f44336;
+            color: white;
+        }
+
+        .copy {
+            background: #4caf50;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #targetText {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .timer {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .box {
+            background: #f5f5f5;
+            padding: 15px 5px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .angka {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .label {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        #status {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 500px) {
+            .timer {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .container {
+                padding: 18px;
+            }
+
+            .angka {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>⏱️ Penghitung Waktu</h1>
+
+    <label>Tanggal:</label>
+    <input type="date" id="tanggal">
+
+    <label>Jam:</label>
+    <input type="time" id="jam">
+
+    <button class="simpan" onclick="simpanWaktu()">
+        💾 Simpan Waktu
+    </button>
+
+    <button class="reset" onclick="aturUlang()">
+        🔄 Atur Ulang Waktu
+    </button>
+
+    <button class="copy" onclick="salinKeClipboard()">
+        📋 Salin ke Clipboard
+    </button>
+
+    <p id="targetText">
+        Belum ada waktu yang dipilih.
+    </p>
+
+    <div class="timer">
+
+        <div class="box">
+            <div class="angka" id="tahun">0</div>
+            <div class="label">Tahun</div>
+        </div>
+
+        <div class="box">
+            <div class="angka" id="bulan">0</div>
+            <div class="label">Bulan</div>
+        </div>
+
+        <div class="box">
+            <div class="angka" id="minggu">0</div>
+            <div class="label">Minggu</div>
+        </div>
+
+        <div class="box">
+            <div class="angka" id="hari">0</div>
+            <div class="label">Hari</div>
+        </div>
+
+        <div class="box">
+            <div class="angka" id="jamTimer">0</div>
+            <div class="label">Jam</div>
+        </div>
+
+        <div class="box">
+            <div class="angka" id="menit">0</div>
+            <div class="label">Menit</div>
+        </div>
+
+        <div class="box">
+            <div class="angka" id="detik">0</div>
+            <div class="label">Detik</div>
+        </div>
+
+    </div>
+
+    <p id="status"></p>
+
+</div>
+
+
+<script>
+
+let targetWaktu = localStorage.getItem("targetWaktu");
+
+
+// ================================
+// SAAT WEB DIBUKA
+// ================================
+
+if (targetWaktu) {
+
+    targetWaktu = new Date(targetWaktu);
+
+    tampilkanTarget();
+    hitungWaktu();
+
+}
+
+
+// ================================
+// SIMPAN WAKTU
+// ================================
+
+function simpanWaktu() {
+
+    const tanggal = document.getElementById("tanggal").value;
+    const jam = document.getElementById("jam").value;
+
+    if (!tanggal || !jam) {
+
+        alert("Silakan pilih tanggal dan jam terlebih dahulu!");
+
+        return;
+    }
+
+    targetWaktu = new Date(`${tanggal}T${jam}:00`);
+
+    localStorage.setItem(
+        "targetWaktu",
+        targetWaktu.toISOString()
+    );
+
+    tampilkanTarget();
+    hitungWaktu();
+
+    alert("✅ Waktu berhasil disimpan!");
+
+}
+
+
+// ================================
+// TAMPILKAN TARGET
+// ================================
+
+function tampilkanTarget() {
+
+    if (!targetWaktu) return;
+
+    const teks = targetWaktu.toLocaleString(
+        "id-ID",
+        {
+            dateStyle: "full",
+            timeStyle: "short"
+        }
+    );
+
+    document.getElementById("targetText").innerText =
+        "Target waktu: " + teks;
+
+}
+
+
+// ================================
+// HITUNG PERBEDAAN WAKTU
+// ================================
+
+function hitungPerbedaan(mulai, akhir) {
+
+    let tahun = 0;
+    let bulan = 0;
+    let hari = 0;
+
+    let cursor = new Date(mulai);
+
+
+    // Hitung tahun
+    while (true) {
+
+        let berikutnya = new Date(cursor);
+
+        berikutnya.setFullYear(
+            berikutnya.getFullYear() + 1
+        );
+
+        if (berikutnya <= akhir) {
+
+            cursor = berikutnya;
+            tahun++;
+
+        } else {
+
+            break;
+        }
+    }
+
+
+    // Hitung bulan
+    while (true) {
+
+        let berikutnya = new Date(cursor);
+
+        berikutnya.setMonth(
+            berikutnya.getMonth() + 1
+        );
+
+        if (berikutnya <= akhir) {
+
+            cursor = berikutnya;
+            bulan++;
+
+        } else {
+
+            break;
+        }
+    }
+
+
+    // Hitung hari
+    while (true) {
+
+        let berikutnya = new Date(cursor);
+
+        berikutnya.setDate(
+            berikutnya.getDate() + 1
+        );
+
+        if (berikutnya <= akhir) {
+
+            cursor = berikutnya;
+            hari++;
+
+        } else {
+
+            break;
+        }
+    }
+
+
+    // Sisa waktu
+    let selisih = akhir - cursor;
+
+    let jam = Math.floor(
+        selisih / (1000 * 60 * 60)
+    );
+
+    selisih %= (1000 * 60 * 60);
+
+    let menit = Math.floor(
+        selisih / (1000 * 60)
+    );
+
+    selisih %= (1000 * 60);
+
+    let detik = Math.floor(
+        selisih / 1000
+    );
+
+
+    return {
+        tahun,
+        bulan,
+        hari,
+        jam,
+        menit,
+        detik
+    };
+
+}
+
+
+// ================================
+// HITUNG WAKTU REAL-TIME
+// ================================
+
+function hitungWaktu() {
+
+    if (!targetWaktu) return;
+
+    const sekarang = new Date();
+
+    let hasil;
+
+
+    // Kalau target masih di masa depan
+    if (targetWaktu > sekarang) {
+
+        hasil = hitungPerbedaan(
+            sekarang,
+            targetWaktu
+        );
+
+        document.getElementById("status").innerText =
+            "⏳ Menghitung mundur...";
+
+    }
+
+    // Kalau target sudah lewat
+    else {
+
+        hasil = hitungPerbedaan(
+            targetWaktu,
+            sekarang
+        );
+
+        document.getElementById("status").innerText =
+            "✅ Waktu target sudah lewat.";
+
+    }
+
+
+    // ================================
+    // MINGGU = 7 HARI
+    // ================================
+
+    const minggu =
+        Math.floor(hasil.hari / 7);
+
+    const hariSisa =
+        hasil.hari % 7;
+
+
+    // ================================
+    // TAMPILKAN
+    // ================================
+
+    document.getElementById("tahun").innerText =
+        hasil.tahun;
+
+    document.getElementById("bulan").innerText =
+        hasil.bulan;
+
+    document.getElementById("minggu").innerText =
+        minggu;
+
+    document.getElementById("hari").innerText =
+        hariSisa;
+
+    document.getElementById("jamTimer").innerText =
+        hasil.jam;
+
+    document.getElementById("menit").innerText =
+        hasil.menit;
+
+    document.getElementById("detik").innerText =
+        hasil.detik;
+
+}
+
+
+// Jalankan setiap 1 detik
+
+setInterval(
+    hitungWaktu,
+    1000
+);
+
+
+// ================================
+// ATUR ULANG
+// ================================
+
+function aturUlang() {
+
+    const yakin = confirm(
+        "Apakah kamu yakin ingin mengatur ulang waktu?"
+    );
+
+    if (!yakin) return;
+
+
+    localStorage.removeItem(
+        "targetWaktu"
+    );
+
+    targetWaktu = null;
+
+
+    document.getElementById("tanggal").value = "";
+    document.getElementById("jam").value = "";
+
+    document.getElementById("targetText").innerText =
+        "Belum ada waktu yang dipilih.";
+
+    document.getElementById("tahun").innerText = "0";
+    document.getElementById("bulan").innerText = "0";
+    document.getElementById("minggu").innerText = "0";
+    document.getElementById("hari").innerText = "0";
+    document.getElementById("jamTimer").innerText = "0";
+    document.getElementById("menit").innerText = "0";
+    document.getElementById("detik").innerText = "0";
+
+    document.getElementById("status").innerText = "";
+
+}
+
+
+// ================================
+// SALIN KE CLIPBOARD
+// ================================
+
+function salinKeClipboard() {
+
+    if (!targetWaktu) {
+
+        alert(
+            "Belum ada waktu yang dipilih!"
+        );
+
+        return;
+    }
+
+
+    const sekarang = new Date();
+
+    let hasil;
+
+
+    if (targetWaktu > sekarang) {
+
+        hasil = hitungPerbedaan(
+            sekarang,
+            targetWaktu
+        );
+
+    } else {
+
+        hasil = hitungPerbedaan(
+            targetWaktu,
+            sekarang
+        );
+
+    }
+
+
+    const minggu =
+        Math.floor(hasil.hari / 7);
+
+    const hariSisa =
+        hasil.hari % 7;
+
+
+    const teks =
+`Tahun: ${hasil.tahun},Bulan: ${hasil.bulan},Minggu: ${minggu},Hari: ${hariSisa},Jam: ${hasil.jam},Menit: ${hasil.menit}`;
+
+
+    // Clipboard modern
+
+    if (navigator.clipboard) {
+
+        navigator.clipboard.writeText(teks)
+
+        .then(() => {
+
+            alert(
+                "✅ Berhasil disalin!"
+            );
+
+        })
+
+        .catch(() => {
+
+            salinAlternatif(teks);
+
+        });
+
+    }
+
+    else {
+
+        salinAlternatif(teks);
+
+    }
+
+}
+
+
+// ================================
+// COPY ALTERNATIF
+// ================================
+
+function salinAlternatif(teks) {
+
+    const textarea =
+        document.createElement("textarea");
+
+
+    textarea.value = teks;
+
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+
+
+    document.body.appendChild(
+        textarea
+    );
+
+
+    textarea.focus();
+    textarea.select();
+
+
+    try {
+
+        const berhasil =
+            document.execCommand("copy");
+
+
+        if (berhasil) {
+
+            alert(
+                "✅ Berhasil disalin!"
+            );
+
+        }
+
+        else {
+
+            tampilkanTeksUntukDisalin(
+                teks
+            );
+
+        }
+
+    }
+
+    catch (error) {
+
+        tampilkanTeksUntukDisalin(
+            teks
+        );
+
+    }
+
+
+    document.body.removeChild(
+        textarea
+    );
+
+}
+
+
+// ================================
+// JIKA COPY BENAR-BENAR GAGAL
+// ================================
+
+function tampilkanTeksUntukDisalin(teks) {
+
+    prompt(
+        "Salin teks berikut:",
+        teks
+    );
+
+}
+
+</script>
+
+</body>
+</html>
